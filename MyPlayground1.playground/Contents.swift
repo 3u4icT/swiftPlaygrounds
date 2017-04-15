@@ -254,6 +254,164 @@ protocol MyProtocol {
 }
 
 
+//A struct, class, or enum may conform to a protocol:
+
+//struct MyStruct : MyProtocol {
+//    // Implement the protocol's requirements here
+//}
+//class MyClass : MyProtocol {
+//    // Implement the protocol's requirements here
+//}
+//enum MyEnum : MyProtocol {
+//    case caseA, caseB, caseC
+//    // Implement the protocol's requirements here
+//}
+
+
+
+//A protocol may also define a default implementation for any of its requirements through an extension:
+
+extension MyProtocol {
+    
+    // default implementation of doSomething() -> Bool
+    // conforming types will use this implementation if they don't define their own
+    func doSomething() -> Bool {
+        print("do something!")
+        return true
+    }
+}
+
+
+//A protocol can be used as a type, provided it doesn't have associatedtype requirements:
+
+func doStuff(object: MyProtocol) {
+    // All of MyProtocol's requirements are available on the object
+    print(object.message)
+    print(object.doSomething())
+}
+
+//let items : [MyProtocol] = [MyStruct(), MyClass(), MyEnum.caseA]
+
+
+//You may also define an abstract type that conforms to multiple protocols:
+
+//With Swift 3 or better, this is done by separating the list of protocols with an ampersand (&):
+
+
+protocol AnotherProtocol{}
+
+
+func doStuff(object: MyProtocol & AnotherProtocol) {
+    // ...
+}
+
+//let items : [MyProtocol & AnotherProtocol] = [MyStruct(), MyClass(), MyEnum.caseA]
+
+
+//Existing types can be extended to conform to a protocol:
+
+//extension String : MyProtocol {
+    // Implement any requirements which String doesn't already satisfy
+//}
+
+
+//Using a class-only protocol allows for reference semantics when the conforming type is unknown.
+
+protocol Foo : class {
+    var bar : String { get set }
+}
+
+func takesAFoo(foo:Foo) {
+    
+    // this assignment requires reference semantics,
+    // as foo is a let constant in this scope.
+    foo.bar = "new value"
+}
+
+//In this example, as Foo is a class-only protocol, the assignment to bar is valid as the compiler knows that foo is a class type, and therefore has reference semantics.
+
+//If Foo was not a class-only protocol, a compiler error would be yielded – as the conforming type could be a value type, which would require a var annotation in order to be mutable.
+
+protocol Foo1 {
+    var bar : String { get set }
+}
+
+func takesAFoo(foo:Foo1) {
+   // foo.bar = "new value" // error: Cannot assign to property: 'foo' is a 'let' constant
+}
+
+
+func takesAFoo1(foo:Foo1) {
+    var foo = foo // mutable copy of foo
+    foo.bar = "new value" // no error – satisfies both reference and value semantics
+}
+
+
+//You can write the default protocol implementation for a specific class.
+extension MyProtocol where Self: UIViewController {
+    func doSomething() {
+        print("UIViewController default protocol implementation")
+    }
+}
+
+
+//Types used in Sets and Dictionaries (keys) must conform to Hashable protocol that inherits from Equatable protocol
+
+//Custom type conforming to Hashable protocol must implement calculated property hashValue as well as define equality operator.
+
+struct Cell: Hashable {
+    var row: Int
+    var col: Int
+    
+    init(_ row: Int, _ col: Int) {
+        self.row = row
+        self.col = col
+    }
+    
+    // satisfy Hashable requirement
+    var hashValue: Int {
+        get {
+            return row + col
+        }
+    }
+}
+
+// satisfy Equatable requirement
+func ==(lhs: Cell, rhs: Cell) -> Bool {
+    return lhs.col == rhs.col && lhs.row == rhs.row
+}
+
+
+var dict = [Cell : String]()
+
+dict[Cell(0, 0)] = "0, 0"
+dict[Cell(1, 0)] = "1, 0"
+dict[Cell(0, 1)] = "0, 1"
+
+// [Cell(row: 0, col: 0): "0, 0", - hashValue: 0
+//  Cell(row: 1, col: 0): "1, 0", - hashValue: 1
+//  Cell(row: 0, col: 1): "0, 1"] - hashValue: 1
+
+dict[Cell(1, 0)] = "changed"
+
+// [Cell(row: 0, col: 0): "0, 0",
+//  Cell(row: 1, col: 0): "changed",
+//  Cell(row: 0, col: 1): "0, 1"]
+
+
+//It is not necessary that different values in custom type have different hash values, collisions are acceptable. If hash values are equal, equality operator will be used to determine real equality.
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
